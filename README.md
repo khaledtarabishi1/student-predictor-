@@ -1,5 +1,4 @@
 # student-predictor
-<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -116,14 +115,13 @@
     <button onclick="predictScore()">Predict Final Score</button>
 
     <h2 id="result"></h2>
-    <div id="recommendation"></div>
+    <div id="recommendation">Enter your scores and click Predict to get recommendations.</div>
 </div>
 
 <script>
 let model;
 
 async function trainModel() {
-    // Example data: [sem1, sem2, sem3, attendance, study, homework, screenTime]
     const xs = tf.tensor2d([
         [70,75,80,90,10,85,3],
         [80,85,88,95,12,90,2],
@@ -159,13 +157,13 @@ async function predictScore() {
         return;
     }
 
-    const s1 = parseFloat(document.getElementById("sem1").value);
-    const s2 = parseFloat(document.getElementById("sem2").value);
-    const s3 = parseFloat(document.getElementById("sem3").value);
-    const attendance = parseFloat(document.getElementById("attendance").value);
-    const study = parseFloat(document.getElementById("study").value);
-    const homework = parseFloat(document.getElementById("homework").value);
-    const screenTime = parseFloat(document.getElementById("screenTime").value);
+    const s1 = parseFloat(document.getElementById("sem1").value) || 0;
+    const s2 = parseFloat(document.getElementById("sem2").value) || 0;
+    const s3 = parseFloat(document.getElementById("sem3").value) || 0;
+    const attendance = parseFloat(document.getElementById("attendance").value) || 0;
+    const study = parseFloat(document.getElementById("study").value) || 0;
+    const homework = parseFloat(document.getElementById("homework").value) || 0;
+    const screenTime = parseFloat(document.getElementById("screenTime").value) || 0;
     const real = parseFloat(document.getElementById("realScore").value);
 
     const input = tf.tensor2d([[s1,s2,s3,attendance,study,homework,screenTime]]);
@@ -175,10 +173,9 @@ async function predictScore() {
     document.getElementById("result").innerText =
         "Predicted Final Score: " + result[0].toFixed(2);
 
-    // Recommendation logic
     let rec = "";
     const score = result[0];
-    
+
     if (score >= 95) rec = "Outstanding! Maintain excellent habits and keep excelling 🌟";
     else if (score >= 90) rec = "Excellent! Keep up the great work 🎉";
     else if (score >= 80) rec = "Good job! Focus on weak subjects and maintain attendance 💪";
@@ -186,17 +183,15 @@ async function predictScore() {
     else if (score >= 60) rec = "Below average. Pay attention to homework and study more 📚";
     else rec = "Needs improvement. Consider revising all subjects and managing screen time 🛑";
 
-    // Additional recommendations based on screen time
     if (screenTime > 5) rec += " | Reduce screen time for better focus ⏱️";
-    else if (screenTime >= 3) rec += " | Your screen time is moderate, try balancing study and screen use ⚖️";
-    else rec += " | Great! Low screen time helps focus 👍";
+    else if (screenTime >= 3) rec += " | Moderate screen time, balance study and use ⚖️";
+    else rec += " | Low screen time — great for focus 👍";
 
-    // If real score is entered, show comparison
     if (!isNaN(real)) {
         rec += ` | Predicted: ${score.toFixed(2)}, Actual: ${real}`;
         const diff = score - real;
-        if (Math.abs(diff) >= 10) rec += " | Big difference! Track your study habits closely 📊";
-        else rec += " | Prediction was close! Keep monitoring your performance ✅";
+        if (Math.abs(diff) >= 10) rec += " | Big difference! Track your study habits 📊";
+        else rec += " | Prediction close! Keep monitoring performance ✅";
     }
 
     document.getElementById("recommendation").innerText = rec;
@@ -206,4 +201,3 @@ trainModel();
 </script>
 </body>
 </html>
-
