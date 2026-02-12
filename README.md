@@ -20,7 +20,7 @@
         backdrop-filter: blur(15px);
         padding: 40px;
         border-radius: 20px;
-        width: 450px;
+        width: 480px;
         box-shadow: 0 0 40px rgba(128, 0, 255, 0.4);
         border: 1px solid rgba(128, 0, 255, 0.3);
     }
@@ -30,17 +30,14 @@
         border:none; outline:none; background:#111122; color:white; font-size:14px;
         border:1px solid rgba(128,0,255,0.3);
     }
-    input:focus, select:focus {
-        border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;
-    }
-    button {
-        width:100%; padding:14px; border-radius:12px; border:none;
+    input:focus, select:focus {border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;}
+    button {width:100%; padding:14px; border-radius:12px; border:none;
         background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white;
-        font-weight:bold; font-size:15px; cursor:pointer;
-    }
+        font-weight:bold; font-size:15px; cursor:pointer;}
     button:hover {transform:scale(1.05); box-shadow:0 0 20px #bb00ff;}
-    #result {margin-top:20px; text-align:center; font-size:18px; color:#bb86fc;}
+    #result {margin-top:15px; text-align:center; font-size:18px; color:#bb86fc;}
     .status {text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;}
+    #recommendations {margin-top:15px; font-size:14px; color:#ffcc00;}
 </style>
 </head>
 <body>
@@ -57,7 +54,7 @@
 <!-- Predictor -->
 <div id="predictorDiv" style="display:none;">
     <div class="status" id="status">Training AI Model...</div>
-
+    
     <select id="systemSelect" onchange="updateSemesterOptions(); updatePlaceholders();">
         <option value="igcse">IGCSE</option>
         <option value="national">National</option>
@@ -128,12 +125,12 @@ function updatePlaceholders(){
     let lastText="", s1Text="", s2Text="";
 
     if(system==="igcse"){
-        if(predict==="sem1"){ lastText="Last Year Semester 1"; s1Text="Last Year Semester 2"; s2Text="Last Year Semester 3"; }
-        else if(predict==="sem2"){ lastText="Last Year Semester 2"; s1Text="Last Year Semester 3"; s2Text="This Year Semester 1"; }
-        else if(predict==="sem3"){ lastText="Last Year Semester 3"; s1Text="This Year Semester 1"; s2Text="This Year Semester 2"; }
+        if(predict==="sem1"){ lastText="Last Year Sem 1"; s1Text="Last Year Sem 2"; s2Text="Last Year Sem 3"; }
+        else if(predict==="sem2"){ lastText="Last Year Sem 2"; s1Text="Last Year Sem 3"; s2Text="This Year Sem 1"; }
+        else if(predict==="sem3"){ lastText="Last Year Sem 3"; s1Text="This Year Sem 1"; s2Text="This Year Sem 2"; }
     } else { // National
-        if(predict==="sem1"){ lastText="Last Year Semester 1"; s1Text="Last Year Semester 2"; }
-        else if(predict==="sem2"){ lastText="Last Year Semester 2"; s1Text="This Year Semester 1"; }
+        if(predict==="sem1"){ lastText="Last Year Sem 1"; s1Text="Last Year Sem 2"; }
+        else if(predict==="sem2"){ lastText="Last Year Sem 2"; s1Text="This Year Sem 1"; }
         s2Text="";
     }
 
@@ -176,7 +173,7 @@ async function trainModel(){
 }
 trainModel();
 
-// ===== Predict & Recommendations =====
+// ===== Predict & Expanded Recommendations =====
 async function predictScore(){
     if(!model){alert("Model still training"); return;}
 
@@ -193,8 +190,11 @@ async function predictScore(){
     const result = await prediction.data();
     document.getElementById("result").innerText="Predicted Final Score: "+result[0].toFixed(2);
 
-    // Simple Recommendations
+    // Expanded Recommendations (6 points)
     let recs = [];
+    if(inputs[0]<60) recs.push("Improve last year's performance.");
+    if(inputs[1]<60) recs.push("Review previous semester concepts.");
+    if(inputs[2]<60) recs.push("Catch up on missing topics.");
     if(inputs[3]<75) recs.push("Increase attendance.");
     if(inputs[4]<5) recs.push("Study more hours per week.");
     if(inputs[5]<70) recs.push("Improve homework score.");
@@ -204,3 +204,4 @@ async function predictScore(){
 </script>
 </body>
 </html>
+
