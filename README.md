@@ -204,4 +204,3 @@ async function predictScore(){
 </script>
 </body>
 </html>
-
