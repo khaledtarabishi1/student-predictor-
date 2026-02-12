@@ -2,213 +2,205 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Adaptive AI Semester Predictor</title>
+<title>AI Student Performance Predictor</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <style>
-body {margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#0f0f1a,#1a0033);color:white;display:flex;justify-content:center;align-items:center;height:100vh;}
-.container {background: rgba(20,20,40,0.95);padding:40px;border-radius:20px;width:600px;box-shadow:0 0 50px rgba(128,0,255,0.5);border:1px solid rgba(128,0,255,0.3);}
-h1{text-align:center;margin-bottom:20px;font-size:26px;color:#bb86fc;}
-input, select { width:100%; padding:12px; margin-bottom:12px; border-radius:10px; border:none; outline:none; background:#111122; color:white; font-size:14px; border:1px solid rgba(128,0,255,0.3);}
-input:focus, select:focus {border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;}
-button { width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white; font-weight:bold; font-size:16px; cursor:pointer; transition:0.3s;}
-button:hover { transform:scale(1.05); box-shadow:0 0 20px #bb00ff;}
-.status {text-align:center; font-size:12px; margin-bottom:15px; color:#aaa;}
-#result {margin-top:20px;text-align:center;font-size:18px;color:#bb86fc;}
-#recommendation {margin-top:15px;text-align:center;font-size:16px;color:#ffcc00; line-height:1.4;}
-.login-section, .predict-section { display:none; }
-label{margin-bottom:5px; display:block;}
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f0f1a, #1a0033);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .container {
+        background: rgba(20, 20, 40, 0.85);
+        backdrop-filter: blur(15px);
+        padding: 40px;
+        border-radius: 20px;
+        width: 450px;
+        box-shadow: 0 0 40px rgba(128, 0, 255, 0.4);
+        border: 1px solid rgba(128, 0, 255, 0.3);
+    }
+    h1 {text-align:center; color:#bb86fc; margin-bottom:20px;}
+    input, select {
+        width:100%; padding:12px; margin-bottom:15px; border-radius:10px;
+        border:none; outline:none; background:#111122; color:white; font-size:14px;
+        border:1px solid rgba(128,0,255,0.3);
+    }
+    input:focus, select:focus {
+        border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;
+    }
+    button {
+        width:100%; padding:14px; border-radius:12px; border:none;
+        background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white;
+        font-weight:bold; font-size:15px; cursor:pointer;
+    }
+    button:hover {transform:scale(1.05); box-shadow:0 0 20px #bb00ff;}
+    #result {margin-top:20px; text-align:center; font-size:18px; color:#bb86fc;}
+    .status {text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;}
 </style>
 </head>
 <body>
 <div class="container">
 
-<!-- LOGIN -->
-<div class="login-section" id="loginSection" style="display:block;">
-<h1>Login / Signup</h1>
-<input type="text" id="username" placeholder="Username">
-<input type="password" id="password" placeholder="Password">
-<label><input type="checkbox" id="rememberMe"> Remember Me</label>
-<button id="loginBtn">Login / Signup</button>
-<div id="loginStatus" class="status"></div>
+<h1>AI Student Performance Predictor</h1>
+
+<!-- Login -->
+<div id="loginDiv">
+    <input type="text" id="username" placeholder="Enter your name">
+    <button onclick="login()">Login</button>
 </div>
 
-<!-- PREDICTOR -->
-<div class="predict-section" id="predictSection">
-<h1>Semester Predictor</h1>
-<div class="status" id="status">Training AI Model...</div>
+<!-- Predictor -->
+<div id="predictorDiv" style="display:none;">
+    <div class="status" id="status">Training AI Model...</div>
 
-<label for="system">Select System:</label>
-<select id="system">
-  <option value="igcse">IGCSE</option>
-  <option value="national">National</option>
-</select>
+    <select id="systemSelect" onchange="updateSemesterOptions(); updatePlaceholders();">
+        <option value="igcse">IGCSE</option>
+        <option value="national">National</option>
+    </select>
 
-<label for="predictSemester">Select Semester to Predict:</label>
-<select id="predictSemester"></select>
+    <select id="predictSelect" onchange="updatePlaceholders()">
+        <option value="sem1">Predict Semester 1</option>
+        <option value="sem2">Predict Semester 2</option>
+        <option value="sem3">Predict Semester 3</option>
+    </select>
 
-<input type="number" id="lastYear" placeholder="Last Year Score">
-<input type="number" id="s1" placeholder="Semester 1 Score">
-<input type="number" id="s2" placeholder="Semester 2 Score">
-<input type="number" id="attendance" placeholder="Attendance %">
-<input type="number" id="study" placeholder="Study Hours per Week">
-<input type="number" id="homework" placeholder="Homework Score">
-<input type="number" id="screenTime" placeholder="Screen Time Hours per Day">
-<input type="number" id="realScore" placeholder="Enter Real Score (optional)">
-<button id="predictBtn">Predict</button>
-<h2 id="result"></h2>
-<div id="recommendation">Enter your scores and click Predict to get recommendations.</div>
-<button id="logoutBtn">Logout</button>
+    <input type="number" id="lastYear" placeholder="">
+    <input type="number" id="s1" placeholder="">
+    <input type="number" id="s2" placeholder="">
+    <input type="number" id="attendance" placeholder="Attendance %">
+    <input type="number" id="study" placeholder="Study Hours per Week">
+    <input type="number" id="homework" placeholder="Homework Score">
+
+    <button onclick="predictScore()">Predict Final Score</button>
+
+    <h2 id="result"></h2>
+    <div id="recommendations"></div>
+    <div class="status" id="screenTime"></div>
 </div>
-
 </div>
 
 <script>
-window.onload=function(){
-let model;
-let currentUser=null;
-
-const loginBtn=document.getElementById("loginBtn");
-const predictBtn=document.getElementById("predictBtn");
-const logoutBtn=document.getElementById("logoutBtn");
-const systemSelect=document.getElementById("system");
-const predictSelect=document.getElementById("predictSemester");
-
-function login(){
-    const username=document.getElementById("username").value.trim();
-    const password=document.getElementById("password").value.trim();
-    const remember=document.getElementById("rememberMe").checked;
-    if(!username||!password){document.getElementById("loginStatus").innerText="Enter username and password."; return;}
-    let users=JSON.parse(localStorage.getItem("students"))||{};
-    if(!users[username]){users[username]={password:password,history:[]}; localStorage.setItem("students",JSON.stringify(users));document.getElementById("loginStatus").innerText="Signup successful!";}
-    else{if(users[username].password!==password){document.getElementById("loginStatus").innerText="Wrong password!"; return;} document.getElementById("loginStatus").innerText="Login successful!";}
-    currentUser=username;
-    if(remember) localStorage.setItem("currentUser",username);
-    showPredictSection();
+// ===== Login & Remember User =====
+function login() {
+    const user = document.getElementById("username").value.trim();
+    if(!user){alert("Enter your name"); return;}
+    localStorage.setItem("loggedInUser", user);
+    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("predictorDiv").style.display="block";
+    startScreenTime();
 }
 
-function logout(){
-    currentUser=null;
-    localStorage.removeItem("currentUser");
-    document.getElementById("loginSection").style.display="block";
-    document.getElementById("predictSection").style.display="none";
+// Auto-login
+const loggedIn = localStorage.getItem("loggedInUser");
+if(loggedIn){
+    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("predictorDiv").style.display="block";
+    startScreenTime();
 }
 
-function showPredictSection(){
-    document.getElementById("loginSection").style.display="none";
-    document.getElementById("predictSection").style.display="block";
-    updateSemesterOptions();
-    trainModel();
-}
+// ===== Dynamic Placeholders =====
+const systemSelect = document.getElementById("systemSelect");
+const predictSelect = document.getElementById("predictSelect");
 
-const remembered=localStorage.getItem("currentUser");
-if(remembered){currentUser=remembered; showPredictSection();}
-else{document.getElementById("loginSection").style.display="block";}
-
-// Update semester dropdown based on system
 function updateSemesterOptions(){
-    const system=systemSelect.value;
-    predictSelect.innerHTML="";
-    let options=[];
-    if(system==="igcse"){ options=["Semester 1","Semester 2","Semester 3"]; }
-    else{ options=["Semester 1","Semester 2"]; }
-    options.forEach((opt,i)=>{ predictSelect.options.add(new Option(opt,`sem${i+1}`)); });
-    updatePlaceholders();
+    if(systemSelect.value==="national"){
+        predictSelect.innerHTML = `
+            <option value="sem1">Predict Semester 1</option>
+            <option value="sem2">Predict Semester 2</option>
+        `;
+    } else {
+        predictSelect.innerHTML = `
+            <option value="sem1">Predict Semester 1</option>
+            <option value="sem2">Predict Semester 2</option>
+            <option value="sem3">Predict Semester 3</option>
+        `;
+    }
 }
 
-// Update placeholders dynamically
 function updatePlaceholders(){
-    const system=systemSelect.value;
-    const predict=predictSelect.value;
+    const system = systemSelect.value;
+    const predict = predictSelect.value;
     let lastText="", s1Text="", s2Text="";
+
     if(system==="igcse"){
-        if(predict==="sem1"){lastText="Last Year Semester 1"; s1Text="Semester 1"; s2Text="Semester 2";}
-        else if(predict==="sem2"){lastText="Last Year Semester 2"; s1Text="Semester 1"; s2Text="Semester 2";}
-        else{lastText="Last Year Overall"; s1Text="Semester 1"; s2Text="Semester 2";}
-    } else {
-        if(predict==="sem1"){lastText="Last Year Semester 1"; s1Text="Semester 1"; s2Text="Semester 2";}
-        else if(predict==="sem2"){lastText="Last Year Semester 2"; s1Text="Semester 1"; s2Text="Semester 2";}
+        if(predict==="sem1"){ lastText="Last Year Semester 1"; s1Text="Last Year Semester 2"; s2Text="Last Year Semester 3"; }
+        else if(predict==="sem2"){ lastText="Last Year Semester 2"; s1Text="Last Year Semester 3"; s2Text="This Year Semester 1"; }
+        else if(predict==="sem3"){ lastText="Last Year Semester 3"; s1Text="This Year Semester 1"; s2Text="This Year Semester 2"; }
+    } else { // National
+        if(predict==="sem1"){ lastText="Last Year Semester 1"; s1Text="Last Year Semester 2"; }
+        else if(predict==="sem2"){ lastText="Last Year Semester 2"; s1Text="This Year Semester 1"; }
+        s2Text="";
     }
+
     document.getElementById("lastYear").placeholder=lastText;
     document.getElementById("s1").placeholder=s1Text;
     document.getElementById("s2").placeholder=s2Text;
 }
 
-systemSelect.addEventListener("change",()=>{
-    updateSemesterOptions();
-});
+// ===== Screen Time =====
+let startTime;
+function startScreenTime(){
+    startTime=Date.now();
+    setInterval(()=>{
+        const diff = Math.floor((Date.now()-startTime)/1000);
+        document.getElementById("screenTime").innerText="Time on predictor: "+diff+" sec";
+    },1000);
+}
 
+// ===== TensorFlow AI =====
+let model;
 async function trainModel(){
-    let xsData=[[80,75,78,90,10,85,3],[70,72,74,85,8,70,4],[90,88,92,95,12,95,2],[60,65,68,75,6,65,5],[85,82,84,92,11,88,3],[78,80,79,88,9,80,4]];
-    let ysData=[[79],[71],[93],[66],[87],[80]];
-    if(currentUser){
-        const users=JSON.parse(localStorage.getItem("students"))||{};
-        const history=users[currentUser].history||[];
-        history.forEach(item=>{
-            xsData.push([item.lastYear,item.s1,item.s2,item.attendance,item.study,item.homework,item.screenTime]);
-            ysData.push([item.predicted]);
-        });
-    }
-    const xs=tf.tensor2d(xsData);
-    const ys=tf.tensor2d(ysData);
-    model=tf.sequential();
-    model.add(tf.layers.dense({units:16,activation:'relu',inputShape:[7]}));
-    model.add(tf.layers.dense({units:8,activation:'relu'}));
+    const xs = tf.tensor2d([
+        [70,75,80,90,10,85],
+        [80,85,88,95,12,90],
+        [60,65,70,75,6,70],
+        [90,92,95,98,15,95],
+        [50,55,60,65,4,60],
+        [85,87,90,93,11,88],
+        [72,74,78,85,9,80],
+        [68,70,75,82,8,77]
+    ]);
+    const ys = tf.tensor2d([[82],[90],[68],[96],[58],[89],[80],[76]]);
+    model = tf.sequential();
+    model.add(tf.layers.dense({units:16, activation:'relu', inputShape:[6]}));
+    model.add(tf.layers.dense({units:8, activation:'relu'}));
     model.add(tf.layers.dense({units:1}));
-    model.compile({optimizer:tf.train.adam(0.01),loss:'meanSquaredError'});
-    await model.fit(xs,ys,{epochs:300});
+    model.compile({optimizer:tf.train.adam(0.01), loss:'meanSquaredError'});
+    await model.fit(xs, ys, {epochs:300});
     document.getElementById("status").innerText="AI Model Ready ✅";
 }
+trainModel();
 
+// ===== Predict & Recommendations =====
 async function predictScore(){
-    if(!model){ alert("Model still training..."); return; }
-    const system=systemSelect.value;
-    const predict=predictSelect.value;
-    const lastYear=parseFloat(document.getElementById("lastYear").value)||0;
-    const s1=parseFloat(document.getElementById("s1").value)||0;
-    const s2=parseFloat(document.getElementById("s2").value)||0;
-    const attendance=parseFloat(document.getElementById("attendance").value)||0;
-    const study=parseFloat(document.getElementById("study").value)||0;
-    const homework=parseFloat(document.getElementById("homework").value)||0;
-    const screenTime=parseFloat(document.getElementById("screenTime").value)||0;
-    const real=parseFloat(document.getElementById("realScore").value);
+    if(!model){alert("Model still training"); return;}
 
-    let factor = system==='igcse'?1:0.95;
-    const input=tf.tensor2d([[lastYear,s1,s2,attendance,study,homework,screenTime]]);
-    const prediction=model.predict(input);
-    const result=await prediction.data();
-    const score=result[0]*factor;
-    document.getElementById("result").innerText=`Predicted ${predict} Score: ${score.toFixed(2)}`;
+    const inputs = [
+        parseFloat(document.getElementById("lastYear").value)||0,
+        parseFloat(document.getElementById("s1").value)||0,
+        parseFloat(document.getElementById("s2").value)||0,
+        parseFloat(document.getElementById("attendance").value)||0,
+        parseFloat(document.getElementById("study").value)||0,
+        parseFloat(document.getElementById("homework").value)||0
+    ];
 
-    // Recommendations
-    let rec="";
-    if(score>=95) rec="Outstanding! Keep excelling 🌟";
-    else if(score>=90) rec="Excellent! Keep up the great work 🎉";
-    else if(score>=80) rec="Good job! Focus on weak subjects 💪";
-    else if(score>=70) rec="Average. Increase study hours ⚡";
-    else if(score>=60) rec="Below average. Pay attention to homework 📚";
-    else rec="Needs improvement. Revise all subjects 🛑";
+    const prediction = model.predict(tf.tensor2d([inputs]));
+    const result = await prediction.data();
+    document.getElementById("result").innerText="Predicted Final Score: "+result[0].toFixed(2);
 
-    if(screenTime>5) rec+=" | Reduce screen time ⏱️";
-    else if(screenTime>=3) rec+=" | Moderate screen time ⚖️";
-    else rec+=" | Low screen time 👍";
-
-    if(lastYear){ if(score>lastYear) rec+=" | Improvement from last year ✅"; else if(score<lastYear) rec+=" | Score lower than last year ⚠️"; else rec+=" | Score similar to last year"; }
-
-    if(!isNaN(real)){ rec+=` | Predicted: ${score.toFixed(2)}, Actual: ${real}`; const diff=score-real; if(Math.abs(diff)>=10) rec+=" | Big difference! Track habits 📊"; else rec+=" | Prediction close ✅"; }
-
-    document.getElementById("recommendation").innerText=rec;
-
-    if(currentUser){
-        let users=JSON.parse(localStorage.getItem("students"))||{};
-        users[currentUser].history.push({system,predict,lastYear,s1,s2,attendance,study,homework,screenTime,predicted:score});
-        localStorage.setItem("students",JSON.stringify(users));
-    }
+    // Simple Recommendations
+    let recs = [];
+    if(inputs[3]<75) recs.push("Increase attendance.");
+    if(inputs[4]<5) recs.push("Study more hours per week.");
+    if(inputs[5]<70) recs.push("Improve homework score.");
+    if(result[0]<70) recs.push("Consider extra tutoring.");
+    document.getElementById("recommendations").innerHTML = recs.length>0 ? "<b>Recommendations:</b><br>"+recs.join("<br>") : "";
 }
-
-loginBtn.addEventListener("click",login);
-predictBtn.addEventListener("click",predictScore);
-logoutBtn.addEventListener("click",logout);
-};
 </script>
 </body>
 </html>
