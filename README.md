@@ -21,19 +21,19 @@
         }
 
         .container {
-            background: rgba(20, 20, 40, 0.85);
+            background: rgba(20, 20, 40, 0.9);
             backdrop-filter: blur(15px);
             padding: 40px;
             border-radius: 20px;
-            width: 420px;
-            box-shadow: 0 0 40px rgba(128, 0, 255, 0.4);
+            width: 480px;
+            box-shadow: 0 0 50px rgba(128, 0, 255, 0.5);
             border: 1px solid rgba(128, 0, 255, 0.3);
         }
 
         h1 {
             text-align: center;
             margin-bottom: 25px;
-            font-size: 24px;
+            font-size: 26px;
             color: #bb86fc;
         }
 
@@ -48,6 +48,7 @@
             color: white;
             font-size: 14px;
             border: 1px solid rgba(128, 0, 255, 0.3);
+            transition: 0.3s;
         }
 
         input:focus {
@@ -63,8 +64,9 @@
             background: linear-gradient(90deg, #7b00ff, #bb00ff);
             color: white;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
+            transition: 0.3s;
         }
 
         button:hover {
@@ -79,17 +81,24 @@
             color: #bb86fc;
         }
 
+        #recommendation {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+            color: #ffcc00;
+            line-height: 1.4;
+        }
+
         .status {
             text-align: center;
             font-size: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #aaa;
         }
     </style>
 </head>
 
 <body>
-
 <div class="container">
     <h1>AI Student Performance Predictor</h1>
 
@@ -101,25 +110,29 @@
     <input type="number" id="attendance" placeholder="Attendance %">
     <input type="number" id="study" placeholder="Study Hours per Week">
     <input type="number" id="homework" placeholder="Homework Score">
+    <input type="number" id="screenTime" placeholder="Screen Time Hours per Day">
+    <input type="number" id="realScore" placeholder="Enter Real Score (optional)">
 
     <button onclick="predictScore()">Predict Final Score</button>
 
     <h2 id="result"></h2>
+    <div id="recommendation"></div>
 </div>
 
 <script>
 let model;
 
 async function trainModel() {
+    // Example data: [sem1, sem2, sem3, attendance, study, homework, screenTime]
     const xs = tf.tensor2d([
-        [70,75,80,90,10,85],
-        [80,85,88,95,12,90],
-        [60,65,70,75,6,70],
-        [90,92,95,98,15,95],
-        [50,55,60,65,4,60],
-        [85,87,90,93,11,88],
-        [72,74,78,85,9,80],
-        [68,70,75,82,8,77]
+        [70,75,80,90,10,85,3],
+        [80,85,88,95,12,90,2],
+        [60,65,70,75,6,70,4],
+        [90,92,95,98,15,95,1],
+        [50,55,60,65,4,60,5],
+        [85,87,90,93,11,88,2],
+        [72,74,78,85,9,80,3],
+        [68,70,75,82,8,77,4]
     ]);
 
     const ys = tf.tensor2d([
@@ -127,7 +140,7 @@ async function trainModel() {
     ]);
 
     model = tf.sequential();
-    model.add(tf.layers.dense({ units:16, activation:'relu', inputShape:[6] }));
+    model.add(tf.layers.dense({ units:16, activation:'relu', inputShape:[7] }));
     model.add(tf.layers.dense({ units:8, activation:'relu' }));
     model.add(tf.layers.dense({ units:1 }));
 
@@ -141,7 +154,10 @@ async function trainModel() {
 }
 
 async function predictScore() {
-    if (!model) return;
+    if (!model) {
+        alert("Model still training...");
+        return;
+    }
 
     const s1 = parseFloat(document.getElementById("sem1").value);
     const s2 = parseFloat(document.getElementById("sem2").value);
@@ -149,18 +165,45 @@ async function predictScore() {
     const attendance = parseFloat(document.getElementById("attendance").value);
     const study = parseFloat(document.getElementById("study").value);
     const homework = parseFloat(document.getElementById("homework").value);
+    const screenTime = parseFloat(document.getElementById("screenTime").value);
+    const real = parseFloat(document.getElementById("realScore").value);
 
-    const input = tf.tensor2d([[s1,s2,s3,attendance,study,homework]]);
+    const input = tf.tensor2d([[s1,s2,s3,attendance,study,homework,screenTime]]);
     const prediction = model.predict(input);
     const result = await prediction.data();
 
     document.getElementById("result").innerText =
         "Predicted Final Score: " + result[0].toFixed(2);
+
+    // Recommendation logic
+    let rec = "";
+    const score = result[0];
+    
+    if (score >= 95) rec = "Outstanding! Maintain excellent habits and keep excelling 🌟";
+    else if (score >= 90) rec = "Excellent! Keep up the great work 🎉";
+    else if (score >= 80) rec = "Good job! Focus on weak subjects and maintain attendance 💪";
+    else if (score >= 70) rec = "Average. Increase study hours and reduce distractions ⚡";
+    else if (score >= 60) rec = "Below average. Pay attention to homework and study more 📚";
+    else rec = "Needs improvement. Consider revising all subjects and managing screen time 🛑";
+
+    // Additional recommendations based on screen time
+    if (screenTime > 5) rec += " | Reduce screen time for better focus ⏱️";
+    else if (screenTime >= 3) rec += " | Your screen time is moderate, try balancing study and screen use ⚖️";
+    else rec += " | Great! Low screen time helps focus 👍";
+
+    // If real score is entered, show comparison
+    if (!isNaN(real)) {
+        rec += ` | Predicted: ${score.toFixed(2)}, Actual: ${real}`;
+        const diff = score - real;
+        if (Math.abs(diff) >= 10) rec += " | Big difference! Track your study habits closely 📊";
+        else rec += " | Prediction was close! Keep monitoring your performance ✅";
+    }
+
+    document.getElementById("recommendation").innerText = rec;
 }
 
 trainModel();
 </script>
-
 </body>
 </html>
 
