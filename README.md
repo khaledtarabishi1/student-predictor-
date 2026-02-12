@@ -5,35 +5,12 @@
 <title>AI Student Performance Predictor</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0f0f1a, #1a0033);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
-    .container {
-        background: rgba(20, 20, 40, 0.85);
-        backdrop-filter: blur(15px);
-        padding: 40px;
-        border-radius: 20px;
-        width: 480px;
-        box-shadow: 0 0 40px rgba(128, 0, 255, 0.4);
-        border: 1px solid rgba(128, 0, 255, 0.3);
-    }
-    h1 {text-align:center; color:#bb86fc; margin-bottom:20px;}
-    input, select {
-        width:100%; padding:12px; margin-bottom:15px; border-radius:10px;
-        border:none; outline:none; background:#111122; color:white; font-size:14px;
-        border:1px solid rgba(128,0,255,0.3);
-    }
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#0f0f1a,#1a0033); color:white; display:flex; justify-content:center; align-items:center; min-height:100vh;}
+    .container {background:rgba(20,20,40,0.85); backdrop-filter:blur(15px); padding:40px; border-radius:20px; width:500px; box-shadow:0 0 40px rgba(128,0,255,0.4); border:1px solid rgba(128,0,255,0.3);}
+    h1{text-align:center; color:#bb86fc; margin-bottom:20px;}
+    input, select {width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:none; outline:none; background:#111122; color:white; font-size:14px; border:1px solid rgba(128,0,255,0.3);}
     input:focus, select:focus {border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;}
-    button {width:100%; padding:14px; border-radius:12px; border:none;
-        background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white;
-        font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:10px;}
+    button {width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white; font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:10px;}
     button:hover {transform:scale(1.05); box-shadow:0 0 20px #bb00ff;}
     #result {margin-top:15px; text-align:center; font-size:18px; color:#bb86fc;}
     .status {text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;}
@@ -48,6 +25,7 @@
 <!-- Login -->
 <div id="loginDiv">
     <input type="text" id="username" placeholder="Enter your name">
+    <input type="password" id="password" placeholder="Enter your password">
     <button onclick="login()">Login</button>
 </div>
 
@@ -66,6 +44,7 @@
         <option value="sem3">Predict Semester 3</option>
     </select>
 
+    <input type="text" id="studentName" placeholder="" readonly>
     <input type="number" id="lastYear" placeholder="">
     <input type="number" id="s1" placeholder="">
     <input type="number" id="s2" placeholder="">
@@ -86,13 +65,17 @@
 // ===== Login & Remember User =====
 function login() {
     const user = document.getElementById("username").value.trim();
-    if(!user){alert("Enter your name"); return;}
+    const pass = document.getElementById("password").value.trim();
+    if(!user || !pass){alert("Enter name and password"); return;}
+    // Save user and password locally (in real apps, do not store plaintext passwords)
     localStorage.setItem("loggedInUser", user);
+    localStorage.setItem("loggedInPass", pass);
     showPredictor();
 }
 
 function logout(){
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("loggedInPass");
     document.getElementById("predictorDiv").style.display="none";
     document.getElementById("loginDiv").style.display="block";
     clearAll();
@@ -105,13 +88,13 @@ if(loggedIn){ showPredictor(); }
 function showPredictor(){
     document.getElementById("loginDiv").style.display="none";
     document.getElementById("predictorDiv").style.display="block";
+    document.getElementById("studentName").value = localStorage.getItem("loggedInUser") || "";
     startScreenTime();
 }
 
 // ===== Clear all inputs and results =====
 function clearAll(){
-    document.getElementById("username").value="";
-    ["lastYear","s1","s2","attendance","study","homework"].forEach(id=>{
+    ["username","password","studentName","lastYear","s1","s2","attendance","study","homework"].forEach(id=>{
         document.getElementById(id).value="";
     });
     document.getElementById("result").innerText="";
@@ -209,7 +192,7 @@ async function predictScore(){
     const result = await prediction.data();
     document.getElementById("result").innerText="Predicted Final Score: "+result[0].toFixed(2);
 
-    // Expanded Recommendations (6 points)
+    // Expanded Recommendations (6+ points)
     let recs = [];
     if(inputs[0]<60) recs.push("Improve last year's performance.");
     if(inputs[1]<60) recs.push("Review previous semester concepts.");
@@ -223,4 +206,3 @@ async function predictScore(){
 </script>
 </body>
 </html>
-
