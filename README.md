@@ -1,4 +1,4 @@
-# student-predictor-<!DOCTYPE html>
+# student-predictor
 <!DOCTYPE html>
 <html>
 <head>
