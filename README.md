@@ -33,7 +33,7 @@
     input:focus, select:focus {border:1px solid #bb86fc; box-shadow:0 0 10px #bb86fc;}
     button {width:100%; padding:14px; border-radius:12px; border:none;
         background:linear-gradient(90deg,#7b00ff,#bb00ff); color:white;
-        font-weight:bold; font-size:15px; cursor:pointer;}
+        font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:10px;}
     button:hover {transform:scale(1.05); box-shadow:0 0 20px #bb00ff;}
     #result {margin-top:15px; text-align:center; font-size:18px; color:#bb86fc;}
     .status {text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;}
@@ -74,6 +74,7 @@
     <input type="number" id="homework" placeholder="Homework Score">
 
     <button onclick="predictScore()">Predict Final Score</button>
+    <button onclick="logout()">Logout</button>
 
     <h2 id="result"></h2>
     <div id="recommendations"></div>
@@ -87,17 +88,35 @@ function login() {
     const user = document.getElementById("username").value.trim();
     if(!user){alert("Enter your name"); return;}
     localStorage.setItem("loggedInUser", user);
+    showPredictor();
+}
+
+function logout(){
+    localStorage.removeItem("loggedInUser");
+    document.getElementById("predictorDiv").style.display="none";
+    document.getElementById("loginDiv").style.display="block";
+    clearAll();
+}
+
+// Auto-login
+const loggedIn = localStorage.getItem("loggedInUser");
+if(loggedIn){ showPredictor(); }
+
+function showPredictor(){
     document.getElementById("loginDiv").style.display="none";
     document.getElementById("predictorDiv").style.display="block";
     startScreenTime();
 }
 
-// Auto-login
-const loggedIn = localStorage.getItem("loggedInUser");
-if(loggedIn){
-    document.getElementById("loginDiv").style.display="none";
-    document.getElementById("predictorDiv").style.display="block";
-    startScreenTime();
+// ===== Clear all inputs and results =====
+function clearAll(){
+    document.getElementById("username").value="";
+    ["lastYear","s1","s2","attendance","study","homework"].forEach(id=>{
+        document.getElementById(id).value="";
+    });
+    document.getElementById("result").innerText="";
+    document.getElementById("recommendations").innerHTML="";
+    document.getElementById("screenTime").innerText="";
 }
 
 // ===== Dynamic Placeholders =====
@@ -204,3 +223,4 @@ async function predictScore(){
 </script>
 </body>
 </html>
+
